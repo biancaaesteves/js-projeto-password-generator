@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@600&family=Inter:wght@400;600&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="reset.css" />
+  <link rel="stylesheet" href="style.css" />
+  <title>Projeto Password Generator</title> <!-- 12/06/2023 -->
+</head>
+
+<body>
+  <main>
+    <section class="hero">
+      <h1 class="title">Password Generator</h1>
+      <p class="subtitle">
+        Utilize o nosso gerador online para criar uma senha forte e segura.
+      </p>
+    </section>
+
+    <section class="box">
+      <div class="password">
+        <div class="text">
+          <input type="text" name="password" id="password" />
+        </div>
+        <div class="actions">
+          <button id="copy-1">
+            <img src="copy.svg" width="42" />
+          </button>
+          <button id="renew">
+            <img src="renew.svg" width="42" />
+          </button>
+        </div>
+      </div>
+      <div class="security-indicator">
+        <div id="security-indicator-bar" class="bar"></div>
+      </div>
+    </section>
+
+    <section class="box customize">
+      <h3 class="title">Personalizar</h3>
+      <div class="actions">
+        <div class="password-length">
+          <p>Tamanho: <span id="password-length-text">16</span></p>
+          <input type="range" name="password-length" id="password-length" class="slider" value="16" min="4" max="64" />
+        </div>
+        <div class="config">
+          <label class="checkbox-container">
+            <span class="text">Maiúsculas</span>
+            <input type="checkbox" id="uppercase-check" checked />
+            <span class="checkmark"></span>
+          </label>
+          <label class="checkbox-container">
+            <span class="text">Números</span>
+            <input type="checkbox" id="number-check" checked />
+            <span class="checkmark"></span>
+          </label>
+          <label class="checkbox-container">
+            <span class="text">Símbolos</span>
+            <input type="checkbox" id="symbol-check" checked />
+            <span class="checkmark"></span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <div class="submit">
+      <button id="copy-2">Copiar senha</button>
+    </div>
+  </main>
+  <script>
+    // Incluindo os eventos do DOM:
+    const inputEl = document.querySelector("#password") // vai recuperar pelo id do input.
+    const upperCaseCheckEl = document.querySelector("#uppercase-check")
+    const numberCheckEl = document.querySelector("#number-check")
+    const symbolCheckEl = document.querySelector("#symbol-check")
+    const securityIndicatorBarEl = document.querySelector(
+      "#security-indicator-bar"
+    )
+
+    let passwordLength = 16 // 16 é o valor default, valor padrão que eu coloquei no range.
+
+    // a função generatePassword vai calcular toda a senha baseada numa string semente.
+    function generatePassword() {
+      let chars = "abcdefghjkmnpqrstuvwxyz"
+
+      const upperCaseChars = "ABCDEFGHJKLMNPQRSTUVWXYZ"
+      const numberChars = "123456789"
+      const symbolChars = "?!@&*()[]"
+
+      // Lógica: if selecionado, incluo no chars os caracteres de uppercase:
+      if (upperCaseCheckEl.checked) {
+        chars += upperCaseChars
+      }
+
+      // Lógica: if selecionado, incluo no chars os caracteres de number:
+      if (numberCheckEl.checked) {
+        chars += numberChars
+      }
+
+      // Lógica: if selecionado, incluo no chars os caracteres de símbolos:
+      if (symbolCheckEl.checked) {
+        chars += symbolChars
+      }
+
+      let password = ""
+
+      // Explicação do for: 16 é o tamanho que eu quero do meu password. Esse looping vai percorrer uma qtidade de vezes que vai ser o tamanho do meu password, o comprimento dele (qtidade de caracteres) e a cada vez que ele passa nesse looping ele vai sortear uma letra, ou um número ou um símbolo. 
+      for (let i = 0; i < passwordLength; i++) {
+        const randomNumber = Math.floor(Math.random() * chars.length)  // número randômico baseado no comprimento de chars.
+        password += chars.substring(randomNumber, randomNumber + 1) // substring é quando eu desejo fazer um recorte da string (chars). Aqui eu pego da posição randomNumber e vou até a posição randomNumber + 1 que significa ir em chars, travar o cursor e só recortar 1. Vai fazer isso até parar em 8, que foi a qtidade de caracteres que eu determinei. */
+      }
+
+      // --- Vamos colocar a password dentro do input via DOM: --- //
+      inputEl.value = password
+
+      calculateQuality()
+      calculateFontSize()
+    }
+
+    function calculateQuality() {
+      // 20% -> crítico / 100% algo safe
+      // Pesos na função matemática:
+      // 64 é o meu valor total.  64/64 = 1 => 100%
+      // Tamanho*0.25 + Maiúsculas*0.15 + Números*0.25 + Símbolos*0.35 (pq símbolos aumentam a nossa probabilidade de segurança) = 100  Se for ajustar o peso, só preciso se atentar que a conta precisa fechar com 100. 
+
+      const percent = Math.round((passwordLength / 64) * 25 +
+        (upperCaseCheckEl.checked ? 15 : 0) +
+        (numberCheckEl.checked ? 25 : 0) +   // Considero o número um pouco maior pq ele tem tendência a ser infinito e daí o 25 atrapalha quem quer burlar a senha. 
+        (symbolCheckEl.checked ? 35 : 0)
+      )
+
+      console.log(percent)
+      securityIndicatorBarEl.style.width = `${percent}%`
+
+      if (percent > 69) {
+        // safe
+        securityIndicatorBarEl.classList.remove('critical')
+        securityIndicatorBarEl.classList.remove('warning')
+        securityIndicatorBarEl.classList.add('safe')
+      } else if (percent > 50) {
+        // warning 
+        securityIndicatorBarEl.classList.remove('critical')
+        securityIndicatorBarEl.classList.add('warning')
+        securityIndicatorBarEl.classList.remove('safe')
+      } else {
+        // critical 
+        securityIndicatorBarEl.classList.add('critical')
+        securityIndicatorBarEl.classList.remove('warning')
+        securityIndicatorBarEl.classList.remove('safe')
+      }
+
+      if (percent >= 100) {
+        securityIndicatorBarEl.classList.add('completed')
+      } else {
+        securityIndicatorBarEl.classList.remove('completed')
+      }
+    }
+
+    // --- Em função do tamanho (passwordLength), ajustar o tamanho da fonte: ---
+    function calculateFontSize() {
+      if (passwordLength > 45) {
+        inputEl.classList.remove("font-sm")
+        inputEl.classList.remove("font-xs")
+        inputEl.classList.add("font-xxs") // Tem que ser a menor porque o passwordLength maior que 45 é muito grande e a fonte precisa ser a menor possível para saber tudo no input. 
+      } else if (passwordLength > 32) {
+        inputEl.classList.remove("font-sm")
+        inputEl.classList.add("font-xs")
+        inputEl.classList.remove("font-xxs")
+      } else if (passwordLength > 22) {
+        inputEl.classList.add("font-sm")
+        inputEl.classList.remove("font-xs")
+        inputEl.classList.remove("font-xxs")
+      } else {
+        inputEl.classList.remove("font-sm")
+        inputEl.classList.remove("font-xs")
+        inputEl.classList.remove("font-xxs")
+        // Remove todo mundo e fica o valor padrão. 
+      }
+    }
+
+
+    function copy() { // Essa função copia e cola um password.
+      navigator.clipboard.writeText(inputEl.value)  // É uma API recente que já tem na maioria dos navegadores. Vai pegar o que tem no input value.
+    }
+
+    // --- Incluir o evento de range. Vai recuperar o value para cada vez que movimentar o range: -- //
+    const passwordLengthEl = document.querySelector("#password-length") // Vai recuperar pelo id do range.
+    passwordLengthEl.addEventListener("input", function () {
+      // Incluir o evento de arrastar. Vamos escutar o evento input.
+      passwordLength = passwordLengthEl.value // Essa função vai pegar o valor e executar a função generatePassword.
+      document.querySelector("#password-length-text").innerText =
+        passwordLength
+      generatePassword() // Cada vez que eu arrasto o range, eu preciso invocar essa função.
+    })
+
+    // --- se o usuário clicar, vai chamar a função generate password: --- //
+    upperCaseCheckEl.addEventListener("click", generatePassword)
+    numberCheckEl.addEventListener("click", generatePassword)
+    symbolCheckEl.addEventListener("click", generatePassword)
+
+    // --- Incluir o Evento no Botão de Copiar Senha: --- //
+    document.querySelector("#copy-1").addEventListener("click", copy) // Peguei o copy pelo id.  Não preciso colocar uma função pq já tenho essa função declarada.
+    document.querySelector("#copy-2").addEventListener("click", copy)
+    document.querySelector("#renew").addEventListener("click", generatePassword)
+
+    generatePassword() // não esquecer de invocar a função.
+
+  </script>
+</body>
+
+</html>
